@@ -4,16 +4,16 @@
 package fr.eni.papeterie.dal.jdbc;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 import fr.eni.papeterie.bo.Article;
-import fr.eni.papeterie.bo.Ramette;
-import fr.eni.papeterie.bo.Stylo;
+import fr.eni.papeterie.dal.DALException;
 
 /**
  * @author Fanny Roux
@@ -21,113 +21,123 @@ import fr.eni.papeterie.bo.Stylo;
  */
 public class ArticleDAOJdbcImpl {
 
-	Article article;
-	Connection connection = null;
-
 	public ArticleDAOJdbcImpl() {
-		connection = getConnexion();
 	}
 
-	/**
-	 * Obtention d'une connexion à la base de données
-	 * 
-	 * @return connexion
-	 */
-	public static Connection getConnexion() {
-
-		Connection cnx = null;
-		try {
-			String urlConnection = "jdbc:sqlserver://127.0.0.1;databasename=PAPETERIE_DB;trustServerCertificate=true";
-
-			String user = "papeterie_java_user";
-			String password = "P@peteri3P@$$!";
-
-			cnx = DriverManager.getConnection(urlConnection, user, password);
-		} catch (SQLException e) {
-			e.printStackTrace();
-
-		}
-		return cnx;
-
-	}
-
-	/**
-	 * Création d'une requête SQL permettant de sélectionner un article par son
-	 * identifiant
-	 * 
-	 * @param integer
-	 * @throws SQLException
-	 */
-	public Article selectById(Integer id) throws SQLException {
+	public Article selectById(Integer id) throws DALException {
+		Article article = null;
+		Connection connection = JdbcTools.getConnection();
 
 		String selectById = "SELECT * FROM dbo.Articles WHERE idArticle= ?";
-		PreparedStatement stmt = connection.prepareStatement(selectById);
-		stmt.setInt(1, id);
 
-		ResultSet rs = stmt.executeQuery();
+		try {
+			PreparedStatement stmt = connection.prepareStatement(selectById);
 
-		while (rs.next()) {
-			Stylo stylo = new Stylo();
-			Ramette ramette = new Ramette();
+			stmt.setInt(1, id);
 
-			if (rs.getString(9).trim().equalsIgnoreCase("stylo")) {
-				stylo.setIdArticle(rs.getInt(1));
-				stylo.setReference(rs.getString(2));
-				stylo.setMarque(rs.getString(3));
-				stylo.setDesignation(rs.getString(4));
-				stylo.setPrixUnitaire(rs.getFloat(5));
-				stylo.setQteStock(rs.getInt(6));
-				stylo.setCouleur(rs.getString(8));
+			ResultSet rs = stmt.executeQuery();
 
-				article = stylo;
-			}
+			rs.next();
+			article = SQLMapperHelper.mapGetterArticle(rs);
 
-			if (rs.getString(9).trim().equalsIgnoreCase("ramette")) {
-				ramette.setIdArticle(rs.getInt(1));
-				ramette.setReference(rs.getString(2));
-				ramette.setMarque(rs.getString(3));
-				ramette.setDesignation(rs.getString(4));
-				ramette.setPrixUnitaire(rs.getFloat(5));
-				ramette.setQteStock(rs.getInt(6));
-				ramette.setGrammage(rs.getInt(7));
+			rs.close();
+			stmt.close();
+			connection.close();
 
-				article = ramette;
-			}
+		} catch (SQLException e) {
+			throw new DALException(e.getMessage());
 		}
-
-		connection.close();
 		return article;
 	}
 
-	public List<Article> selectAll() throws SQLException {
-		List<Article> listeArticles = new ArrayList<Article>();
+	public List<Article> selectAll() throws DALException {
+
+		List<Article> listeArticles = new ArrayList<>();
+		Connection connection = JdbcTools.getConnection();
 
 		String selectAll = "SELECT * FROM dbo.Articles";
-		PreparedStatement stmt = connection.prepareStatement(selectAll);
+		try {
+			PreparedStatement stmt = connection.prepareStatement(selectAll);
 
-		ResultSet rs = stmt.executeQuery();
+			ResultSet rs = stmt.executeQuery();
 
-		while (rs.next()) {
-
-			article.setIdArticle(rs.getInt(1));
-			article.setReference(rs.getString(2));
-			article.setMarque(rs.getString(3));
-			article.setDesignation(rs.getString(4));
-			article.setPrixUnitaire(rs.getFloat(5));
-			article.setQteStock(rs.getInt(6));
-
-			if (rs.getString(9).trim().equalsIgnoreCase("ramette")) {
-				((Ramette) article).setGrammage(rs.getInt(7));
-			} 
-			
-			if (rs.getString(9).trim().equalsIgnoreCase("stylo")) {
-				((Stylo) article).setCouleur(rs.getString(8));
+			while (rs.next()) {
+				listeArticles.add(SQLMapperHelper.mapGetterArticle(rs));
 			}
 
-			listeArticles.add(article);
+			rs.close();
+			stmt.close();
+			connection.close();
 
+		} catch (SQLException e) {
+			throw new DALException();
 		}
 		return listeArticles;
+	}
+
+	public void delete(Integer idArticle) throws DALException {
+		Connection connection = JdbcTools.getConnection();
+
+		String delete = "DELETE FROM dbo.Articles WHERE idArticle=?";
+		try {
+		PreparedStatement stmt = connection.prepareStatement(delete);
+		stmt.setInt(1, idArticle);
+
+		stmt.executeUpdate();
+
+		stmt.close();
+		connection.close();
+		} catch (SQLException e) {
+			throw new DALException(e.getMessage());
+		}
+	}
+
+	public void update(Article article) throws DALException {
+
+		Connection connection = JdbcTools.getConnection();
+
+		String update = "UPDATE dbo.Articles set reference=?, marque=?, designation=?, prixUnitaire=?, qteStock=?, grammage=?, couleur=?, type=?  WHERE idArticle=?";
+		try {
+		PreparedStatement stmt = connection.prepareStatement(update);
+		SQLMapperHelper.mapSetterArticle(stmt, article);
+		stmt.setInt(9, article.getIdArticle());
+
+		stmt.executeUpdate();
+
+		stmt.close();
+		connection.close();
+		} catch (SQLException e) {
+			throw new DALException(e.getMessage());
+		}
+
+	}
+
+	public void insert(Article article) throws DALException {
+		Connection connection = JdbcTools.getConnection();
+
+		String insert = "INSERT INTO dbo.Articles values (?, ?, ?, ?, ?, ?, ?, ?)";
+		try {
+		PreparedStatement stmt = connection.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS);
+		SQLMapperHelper.mapSetterArticle(stmt, article);
+
+		int affectedRows = stmt.executeUpdate();
+
+		if (affectedRows == 0) {
+			throw new SQLException("Creating article failed, no rows affected");
+		}
+
+		ResultSet rsGeneratedKey = stmt.getGeneratedKeys();
+		ResultSetMetaData rsmd = rsGeneratedKey.getMetaData(); 
+//		System.out.println(rsmd.getColumnLabel(1));
+		if (rsGeneratedKey.next()) {
+			article.setIdArticle(rsGeneratedKey.getInt("GENERATED_KEYS"));
+		}
+		stmt.close();
+		connection.close();
+		} catch (SQLException e) {
+			throw new DALException(e.getMessage());
+		}
+
 	}
 
 }
