@@ -8,8 +8,7 @@ package fr.eni.papeterie.bo;
 public class Stylo extends Article {
     private String couleur;
 
-    public Stylo(String couleur) {
-        this.couleur = couleur;
+    public Stylo() {
     }
 
     public Stylo(Integer _idArticle, String _marque, String _reference, String _designation, float _prixUnitaire,

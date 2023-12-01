@@ -8,8 +8,7 @@ package fr.eni.papeterie.bo;
 public class Ramette extends Article {
     private int grammage;
 
-    public Ramette(int grammage) {
-        this.grammage = grammage;
+    public Ramette() {
     }
 
     public Ramette(Integer _idArticle, String _marque, String _reference, String _designation, float _prixUnitaire,
