@@ -7,7 +7,7 @@ import fr.eni.papeterie.bo.Ramette;
 import fr.eni.papeterie.bo.Stylo;
 import fr.eni.papeterie.dal.jdbc.ArticleDAOJdbcImpl;
 
-public class AppliTestDAL {
+public class AppliTestDAL1 {
 
 	public static void main(String[] args) {
 

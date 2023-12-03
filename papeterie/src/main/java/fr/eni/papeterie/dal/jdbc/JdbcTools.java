@@ -4,30 +4,35 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import fr.eni.papeterie.dal.Settings;
+
 public class JdbcTools {
-	
+
+	private static Connection cnx = null;
+
 	/**
 	 * Obtention d'une connexion à la base de données
 	 * 
 	 * @return connexion
 	 */
 	public static Connection getConnection() {
+	
 
-		Connection cnx = null;
-		try {
-			String urlConnection = "jdbc:sqlserver://127.0.0.1;databasename=PAPETERIE_DB;trustServerCertificate=true";
+			try {
+				String urlConnection = Settings.getProperty("urlDB");
+				String user = Settings.getProperty("userDB");
+				String password = Settings.getProperty("passwordDB");
 
-			String user = "papeterie_java_user";
-			String password = "P@peteri3P@$$!";
+				cnx = DriverManager.getConnection(urlConnection, user, password);
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
 
-			cnx = DriverManager.getConnection(urlConnection, user, password);
-		} catch (SQLException e) {
-			e.printStackTrace();
-
-		}
+			}
 		return cnx;
 
 	}
 
 
-}
+	}
+

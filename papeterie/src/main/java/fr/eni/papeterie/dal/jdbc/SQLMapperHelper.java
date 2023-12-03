@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import fr.eni.papeterie.bo.Article;
 import fr.eni.papeterie.bo.Ramette;
 import fr.eni.papeterie.bo.Stylo;
+import fr.eni.papeterie.dal.ArticleDAO;
 
 public class SQLMapperHelper {
 

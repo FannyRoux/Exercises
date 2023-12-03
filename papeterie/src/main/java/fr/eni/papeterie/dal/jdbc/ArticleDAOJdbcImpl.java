@@ -6,25 +6,26 @@ package fr.eni.papeterie.dal.jdbc;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 import fr.eni.papeterie.bo.Article;
+import fr.eni.papeterie.dal.ArticleDAO;
 import fr.eni.papeterie.dal.DALException;
 
 /**
  * @author Fanny Roux
  * 
  */
-public class ArticleDAOJdbcImpl {
+public class ArticleDAOJdbcImpl implements ArticleDAO {
 
 	public ArticleDAOJdbcImpl() {
 	}
 
-	public Article selectById(Integer id) throws DALException {
+	
+	public Article selectById(Integer idArticle) throws DALException {
 		Article article = null;
 		Connection connection = JdbcTools.getConnection();
 
@@ -33,7 +34,7 @@ public class ArticleDAOJdbcImpl {
 		try {
 			PreparedStatement stmt = connection.prepareStatement(selectById);
 
-			stmt.setInt(1, id);
+			stmt.setInt(1, idArticle);
 
 			ResultSet rs = stmt.executeQuery();
 
@@ -127,8 +128,7 @@ public class ArticleDAOJdbcImpl {
 		}
 
 		ResultSet rsGeneratedKey = stmt.getGeneratedKeys();
-		ResultSetMetaData rsmd = rsGeneratedKey.getMetaData(); 
-//		System.out.println(rsmd.getColumnLabel(1));
+
 		if (rsGeneratedKey.next()) {
 			article.setIdArticle(rsGeneratedKey.getInt("GENERATED_KEYS"));
 		}
