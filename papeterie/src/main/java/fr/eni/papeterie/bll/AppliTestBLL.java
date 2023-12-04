@@ -7,6 +7,10 @@ import fr.eni.papeterie.bo.Article;
 import fr.eni.papeterie.bo.Ramette;
 import fr.eni.papeterie.bo.Stylo;
 
+/**
+ * @author ENI Ecole
+ */
+
 public class AppliTestBLL {
 
 	public static void main(String[] args) {

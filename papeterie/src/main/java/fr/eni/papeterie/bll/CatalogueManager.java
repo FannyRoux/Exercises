@@ -9,6 +9,10 @@ import fr.eni.papeterie.dal.ArticleDAO;
 import fr.eni.papeterie.dal.DALException;
 import fr.eni.papeterie.dal.DAOFactory;
 
+/**
+ * @author Fanny Roux
+ */
+
 public class CatalogueManager {
 	private ArticleDAO daoArticle = DAOFactory.getArticleDAO();
 	private static CatalogueManager instance = null;
