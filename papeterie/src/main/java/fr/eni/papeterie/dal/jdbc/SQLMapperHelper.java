@@ -9,6 +9,10 @@ import fr.eni.papeterie.bo.Ramette;
 import fr.eni.papeterie.bo.Stylo;
 import fr.eni.papeterie.dal.ArticleDAO;
 
+/**
+ * @author Fanny Roux
+ */
+
 public class SQLMapperHelper {
 
 	public static Article mapGetterArticle(ResultSet rs) throws SQLException {

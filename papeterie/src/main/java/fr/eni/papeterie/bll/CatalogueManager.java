@@ -16,9 +16,22 @@ import fr.eni.papeterie.dal.DAOFactory;
 public class CatalogueManager {
 	private ArticleDAO daoArticle = DAOFactory.getArticleDAO();
 	private static CatalogueManager instance = null;
+	enum Condition {
+		SELECT_BY_MARQUE(ArticleDAO.Condition.SELECT_BY_MARQUE)
+		, SELECT_BY_MOT_CLE(ArticleDAO.Condition.SELECT_BY_MOT_CLE);
+
+		
+		private ArticleDAO.Condition value;
+
+		Condition(ArticleDAO.Condition ordinal) {
+			this.value = ordinal;
+		}
+		ArticleDAO.Condition getValue(){
+			return value;
+		}
+	}
 
 	private CatalogueManager() {
-//		daoArticle = DAOFactory.getArticleDAO();
 	}
 
 	public static CatalogueManager getInstance() throws BLLException {
@@ -30,7 +43,8 @@ public class CatalogueManager {
 
 	public void addArticle(Article a) throws BLLException {
 		try {
-			daoArticle.insert(a);
+			validerArticle(a);
+			daoArticle.create(a);
 		} catch (DALException e) {
 			throw new BLLException();
 		}
@@ -46,6 +60,7 @@ public class CatalogueManager {
 
 	public void updateArticle(Article a) throws BLLException {
 		try {
+			validerArticle(a);
 			daoArticle.update(a);
 		} catch (DALException e) {
 			throw new BLLException();
@@ -63,7 +78,16 @@ public class CatalogueManager {
 
 	public Article getArticle(int index) throws BLLException {
 		try {
-			return daoArticle.selectById(index);
+			return daoArticle.read(index);
+		} catch (DALException e) {
+			throw new BLLException();
+		}
+	}
+	
+	public List<Article> getArticleSelection(Condition condition, String valeur) throws BLLException {
+		try {
+			
+			return daoArticle.selectBy(condition.getValue(), valeur);
 		} catch (DALException e) {
 			throw new BLLException();
 		}
@@ -71,7 +95,7 @@ public class CatalogueManager {
 
 	public void validerArticle(Article a) throws BLLException {
 		boolean articleValide = true;
-		String messageErreur=null;
+		String messageErreur = null;
 
 		if (dataNotDefined(a.getReference())) {
 			articleValide = false;
@@ -108,9 +132,8 @@ public class CatalogueManager {
 		if (a instanceof Stylo && dataNotDefined(((Stylo) a).getCouleur())) {
 			articleValide = false;
 			messageErreur = String.format("%s%n", "La couleur de la ramette est obligatoire");
-
 		}
-		
+
 		if (!articleValide) {
 			throw new BLLException(String.format("%s%n", messageErreur));
 		}

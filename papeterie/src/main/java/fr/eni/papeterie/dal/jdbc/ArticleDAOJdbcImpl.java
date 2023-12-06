@@ -24,8 +24,7 @@ public class ArticleDAOJdbcImpl implements ArticleDAO {
 	public ArticleDAOJdbcImpl() {
 	}
 
-	
-	public Article selectById(Integer idArticle) throws DALException {
+	public Article read(Integer idArticle) throws DALException {
 		Article article = null;
 		Connection connection = JdbcTools.getConnection();
 
@@ -76,18 +75,54 @@ public class ArticleDAOJdbcImpl implements ArticleDAO {
 		return listeArticles;
 	}
 
+	public List<Article> selectBy(Condition condition, String valeur) throws DALException {
+
+		List<Article> listeArticles = new ArrayList<>();
+		Connection connection = JdbcTools.getConnection();
+
+		String selectByMarque = "SELECT * FROM dbo.Articles WHERE upper(marque) like upper(?)";
+		String selectByMotCle = "SELECT * FROM dbo.Articles WHERE upper(marque) like upper(?) OR upper(designation) like upper(?)";
+		String select = null;
+
+		if (condition == Condition.SELECT_BY_MARQUE) {
+			select = selectByMarque;
+		} else {
+			select = selectByMotCle;
+		}
+		try {
+			PreparedStatement stmt = connection.prepareStatement(select);
+			stmt.setString(1, "%"+valeur+"%");
+			if (condition == Condition.SELECT_BY_MOT_CLE) {
+				stmt.setString(2, "%"+valeur+"%");
+			}
+			ResultSet rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				listeArticles.add(SQLMapperHelper.mapGetterArticle(rs));
+			}
+
+			rs.close();
+			stmt.close();
+			connection.close();
+
+		} catch (SQLException e) {
+			throw new DALException();
+		}
+		return listeArticles;
+	}
+
 	public void delete(Integer idArticle) throws DALException {
 		Connection connection = JdbcTools.getConnection();
 
 		String delete = "DELETE FROM dbo.Articles WHERE idArticle=?";
 		try {
-		PreparedStatement stmt = connection.prepareStatement(delete);
-		stmt.setInt(1, idArticle);
+			PreparedStatement stmt = connection.prepareStatement(delete);
+			stmt.setInt(1, idArticle);
 
-		stmt.executeUpdate();
+			stmt.executeUpdate();
 
-		stmt.close();
-		connection.close();
+			stmt.close();
+			connection.close();
 		} catch (SQLException e) {
 			throw new DALException(e.getMessage());
 		}
@@ -99,41 +134,41 @@ public class ArticleDAOJdbcImpl implements ArticleDAO {
 
 		String update = "UPDATE dbo.Articles set reference=?, marque=?, designation=?, prixUnitaire=?, qteStock=?, grammage=?, couleur=?, type=?  WHERE idArticle=?";
 		try {
-		PreparedStatement stmt = connection.prepareStatement(update);
-		SQLMapperHelper.mapSetterArticle(stmt, article);
-		stmt.setInt(9, article.getIdArticle());
+			PreparedStatement stmt = connection.prepareStatement(update);
+			SQLMapperHelper.mapSetterArticle(stmt, article);
+			stmt.setInt(9, article.getIdArticle());
 
-		stmt.executeUpdate();
+			stmt.executeUpdate();
 
-		stmt.close();
-		connection.close();
+			stmt.close();
+			connection.close();
 		} catch (SQLException e) {
 			throw new DALException(e.getMessage());
 		}
 
 	}
 
-	public void insert(Article article) throws DALException {
+	public void create(Article article) throws DALException {
 		Connection connection = JdbcTools.getConnection();
 
 		String insert = "INSERT INTO dbo.Articles values (?, ?, ?, ?, ?, ?, ?, ?)";
 		try {
-		PreparedStatement stmt = connection.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS);
-		SQLMapperHelper.mapSetterArticle(stmt, article);
+			PreparedStatement stmt = connection.prepareStatement(insert, Statement.RETURN_GENERATED_KEYS);
+			SQLMapperHelper.mapSetterArticle(stmt, article);
 
-		int affectedRows = stmt.executeUpdate();
+			int affectedRows = stmt.executeUpdate();
 
-		if (affectedRows == 0) {
-			throw new SQLException("Creating article failed, no rows affected");
-		}
+			if (affectedRows == 0) {
+				throw new SQLException("Creating article failed, no rows affected");
+			}
 
-		ResultSet rsGeneratedKey = stmt.getGeneratedKeys();
+			ResultSet rsGeneratedKey = stmt.getGeneratedKeys();
 
-		if (rsGeneratedKey.next()) {
-			article.setIdArticle(rsGeneratedKey.getInt("GENERATED_KEYS"));
-		}
-		stmt.close();
-		connection.close();
+			if (rsGeneratedKey.next()) {
+				article.setIdArticle(rsGeneratedKey.getInt("GENERATED_KEYS"));
+			}
+			stmt.close();
+			connection.close();
 		} catch (SQLException e) {
 			throw new DALException(e.getMessage());
 		}
